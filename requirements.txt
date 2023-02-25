@@ -2,3 +2,6 @@ python-telegram-bot==20.0a0
 openai>=0.26.1
 pymongo==4.3.3
 uvicorn==0.20.0
+uvloop==0.17.0
+flask==2.2.3
+loguru==0.6.0

@@ -1,5 +1,6 @@
 import os
 import asyncio
+import uvloop
 import logging
 import traceback
 import html
@@ -18,15 +19,18 @@ from telegram.ext import (
 )
 from telegram.constants import ParseMode, ChatAction
 from uvicorn import Config, Server
-from web.server import app as flask_app
+from uvicorn.middleware.wsgi import WSGIMiddleware
 
 import bot.config as config
 import bot.database as database
 import bot.chatgpt as chatgpt
 
+from bot import logger
+from bot.log_config import LOG_LEVEL, setup_logging
+from bot.web.server import app as flask_app
+
 # setup
 db = database.Database()
-logger = logging.getLogger(__name__)
 
 HELP_MESSAGE = """Commands:
 ⚪ /retry – Regenerate last bot answer
@@ -233,11 +237,19 @@ async def error_handle(update: Update, context: CallbackContext) -> None:
         await context.bot.send_message(update.effective_chat.id, "Some error in error handler")
         
 async def run_server():
-    config = Config(flask_app, host='0.0.0.0', port=8000)
+    adapted_flask_app = WSGIMiddleware(flask_app)
+    config = Config(
+        adapted_flask_app,
+        host='0.0.0.0',
+        port=8000,
+        log_level=LOG_LEVEL,
+        access_log=False
+    )
     server = Server(config)
+    setup_logging()
     await server.serve()
 
-async def run_bot() -> None:
+def run_bot() -> None:
     application = (
         ApplicationBuilder()
         .token(config.telegram_token)
@@ -265,9 +277,12 @@ async def run_bot() -> None:
     application.add_error_handler(error_handle)
     
     # start the bot
-    await application.run_polling(close_loop=False)
+    application.run_polling(close_loop=False)
 
-loop = asyncio.get_event_loop()
+loop = uvloop.new_event_loop()
+asyncio.set_event_loop(loop)
+
 loop.create_task(run_server())
 loop.create_task(run_bot())
+
 loop.run_forever()
