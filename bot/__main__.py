@@ -17,10 +17,9 @@ from telegram.ext import (
 )
 from telegram.constants import ParseMode, ChatAction
 
-import config
-import database
-import chatgpt
-
+import bot.config as config
+import bot.database as database
+import bot.chatgpt as chatgpt
 
 # setup
 db = database.Database()
@@ -238,10 +237,10 @@ def run_bot() -> None:
     )
 
     # add handlers
-    if len(config.allowed_telegram_usernames) == 0:
+    if len(config.allowed_chats) == 0:
         user_filter = filters.ALL
     else:
-        user_filter = filters.User(username=config.allowed_telegram_usernames)
+        user_filter = filters.Chat(chat_id=config.allowed_chats)
 
     application.add_handler(CommandHandler("start", start_handle, filters=user_filter))
     application.add_handler(CommandHandler("help", help_handle, filters=user_filter))
@@ -260,6 +259,4 @@ def run_bot() -> None:
     # start the bot
     application.run_polling()
 
-
-if __name__ == "__main__":
-    run_bot()
+run_bot()
