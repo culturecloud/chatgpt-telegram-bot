@@ -1,4 +1,5 @@
 import os
+import asyncio
 import logging
 import traceback
 import html
@@ -16,6 +17,8 @@ from telegram.ext import (
     filters
 )
 from telegram.constants import ParseMode, ChatAction
+from uvicorn import Config, Server
+from web.server import app as flask_app
 
 import bot.config as config
 import bot.database as database
@@ -228,8 +231,13 @@ async def error_handle(update: Update, context: CallbackContext) -> None:
             await context.bot.send_message(update.effective_chat.id, message_chunk, parse_mode=ParseMode.HTML)
     except:
         await context.bot.send_message(update.effective_chat.id, "Some error in error handler")
+        
+async def run_server():
+    config = Config(flask_app, host='0.0.0.0', port=8000)
+    server = Server(config)
+    await server.serve()
 
-def run_bot() -> None:
+async def run_bot() -> None:
     application = (
         ApplicationBuilder()
         .token(config.telegram_token)
@@ -257,6 +265,9 @@ def run_bot() -> None:
     application.add_error_handler(error_handle)
     
     # start the bot
-    application.run_polling()
+    await application.run_polling(close_loop=False)
 
-run_bot()
+loop = asyncio.get_event_loop()
+loop.create_task(run_server())
+loop.create_task(run_bot())
+loop.run_forever()
