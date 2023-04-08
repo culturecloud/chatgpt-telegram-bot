@@ -2,7 +2,7 @@ import yaml
 
 from os import getenv
 
-PORT = getenv("PORT", 8000)
+PORT = int(getenv("PORT", "8000"))
 BOT_TOKEN = getenv("BOT_TOKEN")
 BOT_ID = int(BOT_TOKEN.split(':', 1)[0])
 OPENAI_API_KEY = getenv("OPENAI_API_KEY")
