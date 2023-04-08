@@ -1,5 +1,8 @@
-from os import path
 import logging
+import uvloop
+import asyncio
+
+from os import path
 from bot.log_config import setup_logging
 
 if path.exists('info.log'):
@@ -10,4 +13,7 @@ if path.exists('debug.log'):
         f.truncate(0)
 
 setup_logging()
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
+
+LOOP = uvloop.new_event_loop()
+asyncio.set_event_loop(LOOP)
