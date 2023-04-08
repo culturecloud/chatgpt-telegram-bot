@@ -469,7 +469,7 @@ async def run_server():
     config = Config(
         adapted_flask_app,
         host='0.0.0.0',
-        port=8000,
+        port=config.PORT,
         log_level=LOG_LEVEL,
         access_log=False
     )
