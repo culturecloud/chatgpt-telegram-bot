@@ -466,14 +466,14 @@ async def post_init(application: Application):
 
 async def run_server():
     adapted_flask_app = WSGIMiddleware(flask_app)
-    config = Config(
+    uvicorn_config = Config(
         adapted_flask_app,
         host='0.0.0.0',
         port=config.PORT,
         log_level=LOG_LEVEL,
         access_log=False
     )
-    server = Server(config)
+    server = Server(uvicorn_config)
     setup_logging()
     await server.serve()
 
